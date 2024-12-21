@@ -66,33 +66,8 @@ class Mollie_IDEAL extends Mollie_Base
 
 	public function selection ()
 	{
-		$methods = array();
-
-		try
-		{
-			$issuers = Mollie_Helper::get_api()->issuers->all();
-
-			foreach ($issuers as $issuer)
-			{
-				if ($issuer->method == Mollie_API_Object_Method::IDEAL)
-				{
-					$methods[] = array(
-						"id"   => $issuer->id,
-						"text" => $issuer->name
-					);
-				}
-			}
-		}
-		catch (Mollie_API_Exception $e)
-		{
-			echo __METHOD__ . " said: " . $e->getMessage();
-		}
-
-		$selection = parent::selection();
-
-		return array_merge($selection, array(
-			"fields" => array(array("field" => tep_draw_pull_down_menu("ideal_id", $methods, "", 'onchange="jQuery(\'input[name=payment][value=' . $this->get_code() . ']\').click()"'))),
-		));
+		// THe: Remove issuer selection
+		return parent::selection();
 	}
 
 	public function after_process_before_redirect ()

@@ -52,7 +52,8 @@ abstract class Mollie_Base
 		$this->sort_order  = $this->get_sort_order();
 		$this->enabled     = TRUE;
 
-		require_once dirname(__FILE__) . "/mollie-api-php/src/Mollie/API/Autoloader.php";
+		require_once dirname(__FILE__) . "/mollie-api-php_new/vendor/autoload.php";
+		require_once dirname(__FILE__) . "/mollie-api-php_new/functions_belvino.php";
 		require_once dirname(__FILE__) . "/mollie_helper.php";
 	}
 

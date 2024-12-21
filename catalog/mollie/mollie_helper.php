@@ -106,7 +106,7 @@ class Mollie_Helper
 		{
 			try
 			{
-				self::$api = new Mollie_API_Client;
+				self::$api = new \Mollie\Api\MollieApiClient();
 				self::$api->setApiKey(MODULE_PAYMENT_MOLLIE_API_KEY);
 
 				if (defined("PROJECT_VERSION"))
@@ -116,7 +116,7 @@ class Mollie_Helper
 
 				self::$api->addVersionString("MollieosCommerce/" . self::VERSION);
 			}
-			catch (Mollie_API_Exception $e)
+			catch (\Mollie\Api\Exceptions\ApiException $e)
 			{
 				// Without a connection to Mollie we cannot proceed with anything.
 				die($e->getMessage());
@@ -134,7 +134,8 @@ class Mollie_Helper
 		try
 		{
 			$order_id = $_GET['osc_order_id'];
-
+/* 
+			// THe - Old
 			$payment = self::get_api()->payments->create(array(
 				"amount"       => $this->get_order_total($order_id),
 				"method"       => isset($_GET['method']) ? $_GET['method'] : NULL,
@@ -144,12 +145,24 @@ class Mollie_Helper
 				"webhookUrl"   => $this->get_webhook_url($order_id),
 				"issuer"       => !empty($_GET['issuer']) ? $_GET['issuer'] : NULL
 			));
+*/
+			$payment = self::get_api()->payments->create(
+				[	"amount" => ["currency" => "EUR", "value" => number_format($this->get_order_total($order_id), 2, ".", "")], 
+					"method" => \Mollie\Api\Types\PaymentMethod::IDEAL, 
+					"description" => MODULE_PAYMENT_MOLLIE_PAYMENT_DESCRIPTION . " " . $order_id, 
+					"redirectUrl" => $this->get_return_url($order_id), 
+					"webhookUrl" => $this->get_webhook_url($order_id),
+					"metadata" => ["order_id" => $orderId], 
+					"issuer" => !empty($_POST["issuer"]) ? $_POST["issuer"] : null
+				]
+			);
 
 			$this->log($payment->id, $payment->status, $order_id);
 
-			header("Location: " . $payment->getPaymentUrl());
+			//header("Location: " . $payment->getPaymentUrl());
+			\header("Location: " . $payment->getCheckoutUrl(), \true, 303);
 		}
-		catch (Mollie_API_Exception $e)
+		catch (\Mollie\Api\Exceptions\ApiException $e)
 		{
 			echo "API call failed: " . htmlspecialchars($e->getMessage());
 		}
@@ -160,6 +173,8 @@ class Mollie_Helper
 	 */
 	public function return_page_action ()
 	{
+		sleep(1); // THe: Wait for paid update by webhookURL
+
 		$status = $this->get_order_status($_GET['order_id']);
 
 		if ($status == "paid")
@@ -175,12 +190,12 @@ class Mollie_Helper
 			tep_session_unregister("comments");
 
 			// Show success page.
-			header("Location: /checkout_success.php");
+			header("Location: /webshop/checkout_success.php");
 		}
 		else 
 		{
 			// Send back to cart.
-			header("Location: /shopping_cart.php");
+			header("Location: /webshop/shopping_cart.php");
 		}
 	}
 
@@ -205,7 +220,7 @@ class Mollie_Helper
 			$this->update_status($id, $payment->status);
 			$this->log($transaction_id, $payment->status, $id);
 		}
-		catch (Mollie_API_Exception $e)
+		catch (\Mollie\Api\Exceptions\ApiException $e)
 		{
 			echo "API call failed: " . htmlspecialchars($e->getMessage());
 		}

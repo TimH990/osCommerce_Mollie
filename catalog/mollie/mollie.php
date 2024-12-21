@@ -38,7 +38,8 @@ chdir("../");
 require "includes/application_top.php";
 
 // Load Mollie API and helper.
-require_once dirname(__FILE__) . "/mollie-api-php/src/Mollie/API/Autoloader.php";
+require_once dirname(__FILE__) . "/mollie-api-php_new/vendor/autoload.php";
+require_once dirname(__FILE__) . "/mollie-api-php_new/functions_belvino.php";
 require_once dirname(__FILE__) . "/mollie_helper.php";
 
 // Initiate Mollie helper.
